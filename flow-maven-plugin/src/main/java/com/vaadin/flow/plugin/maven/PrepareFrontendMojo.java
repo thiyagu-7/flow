@@ -34,6 +34,7 @@ import org.apache.maven.project.MavenProject;
 import com.vaadin.flow.plugin.common.ArtifactData;
 import com.vaadin.flow.plugin.common.JarContentsManager;
 import com.vaadin.flow.plugin.production.ProductionModeCopyStep;
+import com.vaadin.flow.server.DevModeHandler;
 import com.vaadin.flow.server.frontend.FrontendUtils;
 import com.vaadin.flow.server.frontend.NodeTasks;
 
@@ -46,6 +47,7 @@ import static com.vaadin.flow.server.Constants.RESOURCES_FRONTEND_DEFAULT;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_BOWER_MODE;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_PRODUCTION_MODE;
+import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_TESTMODE;
 import static com.vaadin.flow.server.frontend.FrontendUtils.FLOW_NPM_PACKAGE_NAME;
 import static com.vaadin.flow.server.frontend.FrontendUtils.FRONTEND;
 import static com.vaadin.flow.server.frontend.FrontendUtils.NODE_MODULES;
@@ -64,7 +66,7 @@ public class PrepareFrontendMojo extends AbstractMojo {
      * This goal checks that node and npm tools are installed, copies frontend
      * resources available inside `.jar` dependencies to `node_modules`, and creates
      * or updates `package.json` and `webpack.config.json` files.
-     * 
+     *
      * @deprecated use {@link PrepareFrontendMojo} instead
      */
     @Deprecated
@@ -135,8 +137,15 @@ public class PrepareFrontendMojo extends AbstractMojo {
      * The folder where webpack should output index.js and other generated files.
      * By default the output folder is decided depending on project package type.
      */
-    @Parameter
+    @Parameter(defaultValue = "${vaadin.testMode}")
     private File webpackOutputDirectory;
+
+    /**
+     * Whether the build runs in test mode, meaning that {@link DevModeHandler}
+     * must kill webpack process when the thread terminates.
+     */
+    @Parameter
+    private boolean testMode;
 
     @Override
     public void execute() {
@@ -183,6 +192,7 @@ public class PrepareFrontendMojo extends AbstractMojo {
         JsonObject buildInfo = Json.createObject();
         buildInfo.put(SERVLET_PARAMETER_BOWER_MODE, bowerMode);
         buildInfo.put(SERVLET_PARAMETER_PRODUCTION_MODE, productionMode);
+        buildInfo.put(SERVLET_PARAMETER_TESTMODE, testMode);
         buildInfo.put("npmFolder", npmFolder.getAbsolutePath());
         buildInfo.put("generatedFolder", generatedFolder.getAbsolutePath());
         String webpackPort = System.getProperty("vaadin." + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT);

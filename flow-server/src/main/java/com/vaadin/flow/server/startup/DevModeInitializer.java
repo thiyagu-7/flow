@@ -44,7 +44,8 @@ import com.vaadin.flow.server.frontend.NodeTasks.Builder;
 import com.vaadin.flow.server.startup.ServletDeployer.StubServletConfig;
 
 import static com.vaadin.flow.server.Constants.PACKAGE_JSON;
-import static com.vaadin.flow.server.Constants.*;
+import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_BOWER_MODE;
+import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT;
 import static com.vaadin.flow.server.frontend.FrontendUtils.WEBPACK_CONFIG;
 
 /**
@@ -181,8 +182,9 @@ public class DevModeInitializer
                     new VisitedClasses(visitedClassNames));
         }
 
-        DevModeHandler.start(config, builder.npmFolder);
+        DevModeHandler.start(context, config, builder.npmFolder);
     }
+
 
     private static Logger log() {
         return LoggerFactory.getLogger(DevModeInitializer.class);

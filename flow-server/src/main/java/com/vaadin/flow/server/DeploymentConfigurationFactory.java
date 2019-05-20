@@ -43,6 +43,7 @@ import elemental.json.impl.JsonUtil;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_BOWER_MODE;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_PRODUCTION_MODE;
+import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_TESTMODE;
 import static com.vaadin.flow.server.frontend.FrontendUtils.PARAM_TOKEN_FILE;
 import static com.vaadin.flow.server.frontend.FrontendUtils.TOKEN_FILE;
 /**
@@ -168,6 +169,11 @@ public final class DeploymentConfigurationFactory implements Serializable {
                         && buildInfo.hasKey(SERVLET_PARAMETER_BOWER_MODE)) {
                     System.setProperty("vaadin." + SERVLET_PARAMETER_BOWER_MODE, String.valueOf(
                             buildInfo.getBoolean(SERVLET_PARAMETER_BOWER_MODE)));
+                }
+                if (!Boolean.valueOf("vaadin." + SERVLET_PARAMETER_TESTMODE)
+                        && buildInfo.hasKey(SERVLET_PARAMETER_TESTMODE)) {
+                    System.setProperty("vaadin." + SERVLET_PARAMETER_TESTMODE, String.valueOf(
+                            buildInfo.getBoolean(SERVLET_PARAMETER_TESTMODE)));
                 }
                 if (System.getProperty("vaadin." + SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT) == null
                         && buildInfo.hasKey("webpackPort")) {

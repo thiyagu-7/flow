@@ -15,6 +15,9 @@
  */
 package com.vaadin.flow.server;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,6 +51,7 @@ import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_RUNNING_PORT;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_SUCCESS_PATTERN;
 import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK_TIMEOUT;
+import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_TESTMODE;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 /**
@@ -100,7 +104,7 @@ public class DevModeHandler implements Serializable {
         this.port = port;
     }
 
-    private DevModeHandler(DeploymentConfiguration config, int runningPort,
+    private DevModeHandler(ServletContext servletContext, DeploymentConfiguration config, int runningPort,
             File npmFolder, File webpack, File webpackConfig) {
 
         port = runningPort;
@@ -145,6 +149,19 @@ public class DevModeHandler implements Serializable {
             Runtime.getRuntime()
                     .addShutdownHook(new Thread(webpackProcess::destroy));
 
+            if (servletContext != null && config.getBooleanProperty(SERVLET_PARAMETER_TESTMODE, false)) {
+                servletContext.addListener(new ServletContextListener() {
+                    @Override
+                    public void contextInitialized(ServletContextEvent sce) {
+                    }
+                    @Override
+                    public void contextDestroyed(ServletContextEvent sce) {
+                        System.err.println(">>>> KLILLING webpack");
+                        webpackProcess.destroyForcibly();
+                    }
+                });
+            }
+
             Pattern succeed = Pattern.compile(config.getStringProperty(
                     SERVLET_PARAMETER_DEVMODE_WEBPACK_SUCCESS_PATTERN,
                     DEFAULT_OUTPUT_PATTERN));
@@ -183,9 +200,9 @@ public class DevModeHandler implements Serializable {
      *
      * @return the instance in case everything is alright, null otherwise
      */
-    public static DevModeHandler start(DeploymentConfiguration configuration, File npmFolder) {
+    public static DevModeHandler start(ServletContext servletContext, DeploymentConfiguration configuration, File npmFolder) {
         atomicHandler.compareAndSet(null,
-                DevModeHandler.createInstance(configuration, npmFolder));
+                DevModeHandler.createInstance(servletContext, configuration, npmFolder));
         return getDevModeHandler();
     }
 
@@ -198,7 +215,7 @@ public class DevModeHandler implements Serializable {
         return atomicHandler.get();
     }
 
-    private static DevModeHandler createInstance(DeploymentConfiguration configuration, File npmFolder) {
+    private static DevModeHandler createInstance(ServletContext servletContext, DeploymentConfiguration configuration, File npmFolder) {
         if (configuration.isProductionMode() || configuration.isBowerMode()) {
             return null;
         }
@@ -229,7 +246,7 @@ public class DevModeHandler implements Serializable {
                 return null;
             }
         }
-        return new DevModeHandler(configuration, runningPort, npmFolder, webpack, webpackConfig);
+        return new DevModeHandler(servletContext, configuration, runningPort, npmFolder, webpack, webpackConfig);
     }
 
     /**

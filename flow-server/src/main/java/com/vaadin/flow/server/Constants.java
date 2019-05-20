@@ -169,6 +169,12 @@ public final class Constants implements Serializable {
     public static final String SERVLET_PARAMETER_DEVMODE_WEBPACK_TIMEOUT = "devmode.webpack.output.pattern.timeout";
 
     /**
+     * Configuration name indicating that vaadin is running in a test so as it
+     * cleans processes on exit.
+     */
+    public static final String SERVLET_PARAMETER_TESTMODE = "testMode";
+
+    /**
      * Configuration name for the pattern used to inspect the webpack output to
      * assure it is up and running. Default value is defined in
      * {@link DevModeHandler} as the <code>: Compiled</code> expression.
