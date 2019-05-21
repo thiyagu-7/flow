@@ -42,7 +42,7 @@ public class IdTestIT extends ChromeBrowserTest {
 
         // wait for polymer initalisation
         waitUntillWithMessage(driver -> getCommandExecutor().executeScript(
-                "return window.Polymer || arguments[0].constructor.polymerElementVersion !== undefined",
+                "arguments[0].constructor.polymerElementVersion !== undefined",
                 myComponent),
                 "Failed to load Polymer for 'my-component'");
 
