@@ -288,7 +288,7 @@ public class WebComponentBootstrapHandler extends BootstrapHandler {
      * @throws IOException
      *         if {@code writer} is unable to write
      */
-    private static void transferAttribute(
+    private void transferAttribute(
             Writer writer, String elementRef, Element element,
             String basePath) throws IOException {
         for (Attribute attribute : element.attributes()) {
@@ -298,12 +298,16 @@ public class WebComponentBootstrapHandler extends BootstrapHandler {
             } else {
                 String path = attribute.getValue();
                 if ("src".equals(attribute.getKey())) {
-                    path = URI.create(basePath + path).toString();
+                    path = modifyPath(path, basePath);
                 }
                 writer.append("'").append(path).append("'");
             }
             writer.append(");");
         }
+    }
+
+    protected String modifyPath(String path, String basePath) {
+        return URI.create(basePath + path).toString();
     }
 
     private static String inlineHTML(String html) {
