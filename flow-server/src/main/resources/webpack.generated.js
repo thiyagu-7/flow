@@ -13,8 +13,8 @@ const baseDir = path.resolve(__dirname);
 // the folder of app resources (main.js and flow templates)
 const frontendFolder = `${baseDir}/frontend`;
 
-const fileNameOfTheFlowGeneratedMainEntryPoint = '[to-be-generated-by-flow]';
-const mavenOutputFolderForFlowBundledFiles = '[to-be-generated-by-flow]';
+const fileNameOfTheFlowGeneratedMainEntryPoint = require('path').resolve(__dirname, 'target/frontend/generated-flow-imports.js');
+const mavenOutputFolderForFlowBundledFiles = require('path').resolve(__dirname, 'target/classes/META-INF/VAADIN');
 
 // public path for resources, must match Flow VAADIN_BUILD
 const build = 'build';
@@ -53,6 +53,7 @@ module.exports = {
   },
 
   resolve: {
+    extensions: ['.ts', '.js'],
     alias: {
       Frontend: frontendFolder
     }
@@ -80,6 +81,10 @@ module.exports = {
         use: [BabelMultiTargetPlugin.loader()]
       },
       {
+        test: /\.ts$/,
+        loader: 'awesome-typescript-loader'
+      },
+      {
         test: /\.css$/i,
         use: ['raw-loader']
       }
@@ -105,12 +110,14 @@ module.exports = {
             // covered by the webcomponents-loader.js
             'last 1 Chrome major versions'
           ],
+          esModule: true
         },
         'es5': { // IE11
           browsers: [
             'ie 11'
           ],
           tagAssetsWithKey: true, // append a suffix to the file name
+          noModule: true
         }
       }
     }),
@@ -139,3 +146,4 @@ module.exports = {
     }]),
   ]
 };
+
