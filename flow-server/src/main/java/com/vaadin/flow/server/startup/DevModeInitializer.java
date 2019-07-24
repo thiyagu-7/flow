@@ -246,7 +246,9 @@ public class DevModeInitializer implements ServletContainerInitializer,
         VaadinContext vaadinContext = new VaadinServletContext(context);
         vaadinContext.setAttribute(new VisitedClasses(visitedClassNames));
 
-        DevModeHandler.start(config, builder.npmFolder);
+        DevModeHandler.start(config, builder.npmFolder,
+                builder.getFrontendDependencies().getRoutes().toArray(new String[0]));
+
     }
 
     private static Logger log() {

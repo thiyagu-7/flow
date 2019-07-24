@@ -35,10 +35,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -92,6 +94,8 @@ public final class DevModeHandler implements Serializable {
     private static final int DEFAULT_BUFFER_SIZE = 32 * 1024;
     private static final int DEFAULT_TIMEOUT = 120 * 1000;
     private static final String WEBPACK_HOST = "http://localhost";
+
+    private Set<String> routes;
 
     private boolean notified = false;
 
@@ -208,8 +212,10 @@ public final class DevModeHandler implements Serializable {
      *
      * @return the instance in case everything is alright, null otherwise
      */
-    public static DevModeHandler start(DeploymentConfiguration configuration, File npmFolder) {
-        return start(0, configuration, npmFolder);
+    public static DevModeHandler start(DeploymentConfiguration configuration, File npmFolder, String... routes) {
+        DevModeHandler handler = start(0, configuration, npmFolder);
+        handler.routes = Arrays.stream(routes).map(r -> r.replaceFirst("^(/+|)", "/")).collect(Collectors.toSet());
+        return handler;
     }
 
     /**
@@ -292,8 +298,8 @@ public final class DevModeHandler implements Serializable {
      * @return true if the request should be forwarded to webpack
      */
     public boolean isDevModeRequest(HttpServletRequest request) {
-        return request.getPathInfo() != null
-                && request.getPathInfo().matches(".+\\.js");
+        String path = request.getPathInfo();
+        return "/".equals(path) || !routes.contains(request.getPathInfo());
     }
 
     /**
@@ -319,6 +325,13 @@ public final class DevModeHandler implements Serializable {
         String requestFilename = request.getPathInfo().replace(VAADIN_MAPPING,
                 "");
 
+        // When request has no extension we suppose it's a route, we need to
+        // return the index.html so as client side routing work on browser reload.
+        // This is the same behavior than in vaadin-frontend-server
+        if (!requestFilename.matches("^.*\\.[a-zA-Z0-9]+$")) {
+            requestFilename = "/index.html";
+        }
+
         HttpURLConnection connection = prepareConnection(requestFilename,
                 request.getMethod());
 
@@ -333,17 +346,17 @@ public final class DevModeHandler implements Serializable {
         }
 
         // Send the request
-        getLogger().debug("Requesting resource to webpack {}",
+        getLogger().info("Requesting resource to webpack {}",
                 connection.getURL());
         int responseCode = connection.getResponseCode();
         if (responseCode == HTTP_NOT_FOUND) {
-            getLogger().debug("Resource not served by webpack {}",
+            getLogger().info("Resource not served by webpack {}",
                     requestFilename);
             // webpack cannot access the resource, return false so as flow can
             // handle it
             return false;
         }
-        getLogger().debug("Served resource by webpack: {} {}", responseCode,
+        getLogger().info("Served resource by webpack: {} {}", responseCode,
                 requestFilename);
 
         // Copies response headers
