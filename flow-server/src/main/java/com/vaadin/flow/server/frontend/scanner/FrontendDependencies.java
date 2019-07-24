@@ -204,6 +204,19 @@ public class FrontendDependencies implements Serializable {
     }
 
     /**
+     * Get all routes used by the application.
+     *
+     * @return the routes
+     */
+    public Set<String> getRoutes() {
+        Set<String> all = new HashSet<>();
+        for (EndPointData data : endPoints.values()) {
+            all.add(data.getRoute());
+        }
+        return all;
+    }
+
+    /**
      * Get all the CSS files used by the application.
      *
      * @return the set of CSS files

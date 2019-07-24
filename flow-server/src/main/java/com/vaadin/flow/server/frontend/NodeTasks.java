@@ -75,6 +75,8 @@ public class NodeTasks implements FallibleCommand {
 
         private Set<String> visitedClasses = null;
 
+        private FrontendDependencies frontendDependencies = null;
+
         /**
          * Directory for for npm and folders and files.
          */
@@ -292,6 +294,20 @@ public class NodeTasks implements FallibleCommand {
             this.frontendResourcesDirectory = frontendResourcesDirectory;
             return this;
         }
+
+        /**
+         * Compute and return application dependencies. It's computed once.
+         * 
+         * @return the FrontendDependencies object describing the application
+         *         dependency and usage tree.
+         */
+        public FrontendDependencies getFrontendDependencies() {
+            if (frontendDependencies == null) {
+                frontendDependencies = new FrontendDependencies(classFinder,
+                        generateEmbeddableWebComponents);
+            }
+            return frontendDependencies;
+        }
     }
 
     private final Collection<FallibleCommand> commands = new ArrayList<>();
@@ -299,7 +315,6 @@ public class NodeTasks implements FallibleCommand {
     private NodeTasks(Builder builder) {
 
         ClassFinder classFinder = null;
-        FrontendDependencies frontendDependencies = null;
 
         if (builder.enablePackagesUpdate || builder.enableImportsUpdate) {
             classFinder = new ClassFinder.CachedClassFinder(
@@ -310,9 +325,6 @@ public class NodeTasks implements FallibleCommand {
                         classFinder);
                 generator.generateWebComponents(builder.generatedFolder);
             }
-
-            frontendDependencies = new FrontendDependencies(classFinder,
-                    builder.generateEmbeddableWebComponents);
         }
 
         if (builder.createMissingPackageJson) {
@@ -323,7 +335,7 @@ public class NodeTasks implements FallibleCommand {
 
         if (builder.enablePackagesUpdate) {
             TaskUpdatePackages packageUpdater = new TaskUpdatePackages(
-                    classFinder, frontendDependencies, builder.npmFolder,
+                    classFinder, builder.getFrontendDependencies(), builder.npmFolder,
                     builder.generatedFolder, builder.cleanNpmFiles);
             commands.add(packageUpdater);
 
@@ -351,12 +363,12 @@ public class NodeTasks implements FallibleCommand {
 
         if (builder.enableImportsUpdate) {
             commands.add(new TaskUpdateImports(classFinder,
-                    frontendDependencies, builder.npmFolder,
+                    builder.getFrontendDependencies(), builder.npmFolder,
                     builder.generatedFolder, builder.frontendDirectory));
 
             if (builder.visitedClasses != null) {
                 builder.visitedClasses
-                        .addAll(frontendDependencies.getClasses());
+                        .addAll(builder.getFrontendDependencies().getClasses());
             }
         }
     }
