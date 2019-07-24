@@ -22,6 +22,7 @@ import com.vaadin.flow.server.BootstrapHandler;
 import com.vaadin.flow.server.ServletHelper;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.VaadinResponse;
+import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.VaadinServletRequest;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.webcomponent.WebComponentConfigurationRegistry;
@@ -86,7 +87,16 @@ public class WebComponentBootstrapHandler extends BootstrapHandler {
      * Creates a new bootstrap handler with default page builder.
      */
     public WebComponentBootstrapHandler() {
-        super();
+        super(new BootstrapPageBuilder() {
+            @Override
+            protected void appendNpmBundle(Element head, VaadinService service) throws IOException {
+                // External app must include flow bundle in their bundle
+            }
+            @Override
+            protected void appendNpmPolyfills(Element head, VaadinService service) {
+                // External app must load polyfills
+            }
+        });
     }
 
     /**

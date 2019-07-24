@@ -494,7 +494,7 @@ public class BootstrapHandler extends SynchronizedRequestHandler {
      *
      * Do not subclass this, unless you really know why you are doing it.
      */
-    protected static final class BootstrapPageBuilder
+    protected static class BootstrapPageBuilder
             implements PageBuilder, Serializable {
 
         /**
@@ -828,9 +828,7 @@ public class BootstrapHandler extends SynchronizedRequestHandler {
                 inlineEs6Collections(head, context);
                 appendWebComponentsPolyfills(head, context);
             } else {
-                conf.getPolyfills().forEach(polyfill -> head.appendChild(
-                        createJavaScriptElement(
-                                "./" + VAADIN_MAPPING + polyfill, false)));
+                appendNpmPolyfills(head, service);
                 try {
                     appendNpmBundle(head, service);
                 } catch (IOException e) {
@@ -848,7 +846,13 @@ public class BootstrapHandler extends SynchronizedRequestHandler {
                     createJavaScriptElement(getClientEngineUrl(context)));
         }
 
-        private void appendNpmBundle(Element head, VaadinService service)
+        protected void appendNpmPolyfills(Element head, VaadinService service) {
+            service.getDeploymentConfiguration().getPolyfills()
+                    .forEach(polyfill -> head.appendChild(createJavaScriptElement(
+                            "./" + VAADIN_MAPPING + polyfill, false)));
+        }
+
+        protected void appendNpmBundle(Element head, VaadinService service)
                 throws IOException {
             String content = FrontendUtils.getStatsContent(service);
             if (content == null) {
