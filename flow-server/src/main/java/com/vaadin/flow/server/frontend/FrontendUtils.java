@@ -373,6 +373,40 @@ public class FrontendUtils {
         return content != null ? streamToString(content) : null;
     }
 
+    public static String getIndexHtmlContent(VaadinService service)
+            throws IOException {
+        DeploymentConfiguration config = service.getDeploymentConfiguration();
+        InputStream content = null;
+
+        if (!config.isProductionMode() && config.enableDevServer()) {
+            content = getIndexHtmlFromWebpack();
+        }
+
+        if (content == null) {
+            content = getIndexHtmlFromClassPath(service);
+        }
+        return content != null ? streamToString(content) : null;
+    }
+
+    private static InputStream getIndexHtmlFromClassPath(
+            VaadinService service) {
+        InputStream resource = service.getClassLoader()
+                .getResourceAsStream(VAADIN_SERVLET_RESOURCES + "index.html");
+        if (resource == null) {
+            String message = String.format("'index.html' is not found in '%s'",
+                    Constants.VAADIN_SERVLET_RESOURCES);
+            LoggerFactory.getLogger(FrontendUtils.class).info(message);
+            return null;
+        }
+
+        return resource;
+    }
+
+    private static InputStream getIndexHtmlFromWebpack() throws IOException {
+        DevModeHandler handler = DevModeHandler.getDevModeHandler();
+        return handler.prepareConnection("/VAADIN/index.html", "GET").getInputStream();
+    }
+
     private static InputStream getStatsFromWebpack() throws IOException {
         DevModeHandler handler = DevModeHandler.getDevModeHandler();
         return handler.prepareConnection("/stats.json", "GET").getInputStream();

@@ -49,7 +49,8 @@ module.exports = {
 
   output: {
     filename: `${build}/vaadin-[name]-[contenthash].cache.js`,
-    path: mavenOutputFolderForFlowBundledFiles
+    path: mavenOutputFolderForFlowBundledFiles,
+    publicPath: 'VAADIN/'
   },
 
   resolve: {
@@ -144,6 +145,11 @@ module.exports = {
       from: `${baseDir}/node_modules/@webcomponents/webcomponentsjs`,
       to: `${build}/webcomponentsjs/`
     }]),
+
+    new CopyWebpackPlugin([{
+          from: `${frontendFolder}/index.html`,
+          to: `${mavenOutputFolderForFlowBundledFiles}/index.html`
+        }]),
   ]
 };
 
