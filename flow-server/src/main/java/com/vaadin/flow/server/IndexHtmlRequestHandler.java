@@ -76,7 +76,7 @@ public class IndexHtmlRequestHandler extends SynchronizedRequestHandler {
                 .getObject("assetsByChunkName");
         for (String key : chunks.keys()) {
             Element script = createJavaScriptElement(
-                    "./" + VAADIN_MAPPING + chunks.getString(key), false);
+                    "./" + VAADIN_MAPPING + chunks.getString(key));
             if (key.endsWith(".es5")) {
                 head.appendChild(script.attr("nomodule", true));
             } else {
