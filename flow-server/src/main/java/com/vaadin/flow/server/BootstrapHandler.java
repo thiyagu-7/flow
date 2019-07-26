@@ -124,7 +124,7 @@ public class BootstrapHandler extends SynchronizedRequestHandler {
     private static final String MESSAGE = "message";
     private static final String URL = "url";
 
-    static Supplier<String> clientEngineFile = () -> LazyClientEngineInit.CLIENT_ENGINE_FILE;
+    public static Supplier<String> clientEngineFile = () -> LazyClientEngineInit.CLIENT_ENGINE_FILE;
 
     private final PageBuilder pageBuilder;
 
@@ -553,6 +553,7 @@ public class BootstrapHandler extends SynchronizedRequestHandler {
                     context.getRequest(), context.getSession(),
                     context.getResponse(), document, context.getUI(),
                     context.getUriResolver());
+
             context.getSession().getService().modifyBootstrapPage(response);
 
             return document;

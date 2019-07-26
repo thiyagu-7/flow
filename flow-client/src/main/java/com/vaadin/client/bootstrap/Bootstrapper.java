@@ -18,6 +18,7 @@ package com.vaadin.client.bootstrap;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.xhr.client.XMLHttpRequest;
 
 import com.vaadin.client.ApplicationConfiguration;
 import com.vaadin.client.ApplicationConnection;
@@ -29,6 +30,12 @@ import com.vaadin.client.WidgetUtil;
 import com.vaadin.client.flow.collection.JsArray;
 import com.vaadin.client.flow.collection.JsCollections;
 import com.vaadin.flow.shared.ApplicationConstants;
+
+import elemental.client.Browser;
+import elemental.js.util.Xhr;
+import elemental.js.util.Xhr.Callback;
+import elemental.json.Json;
+import elemental.json.JsonObject;
 
 /**
  * Handles bootstrapping of the application.
@@ -63,10 +70,36 @@ public class Bootstrapper implements EntryPoint {
         }
         moduleLoaded = true;
 
-        Profiler.initialize();
+        String url = Browser.getWindow().getLocation().getHref()
+                + "?" + ApplicationConstants.REQUEST_TYPE_PARAMETER
+                + "=" + ApplicationConstants.REQUEST_TYPE_INIT;
 
-        registerCallback(GWT.getModuleName());
+        Xhr.get(url, new Callback() {
+            @Override
+            public void onSuccess(XMLHttpRequest xhr) {
+
+                if (!"application/json".equals(xhr.getResponseHeader("content-type"))) {
+                    onFail(xhr);
+                    return;
+                }
+
+                runBootStrap(Json.parse(xhr.getResponseText()));
+
+                Profiler.initialize();
+                registerCallback(GWT.getModuleName());
+            }
+
+            @Override
+            public void onFail(XMLHttpRequest xhr) {
+                Browser.getWindow().getConsole().error("Error calling server initialisation status:" + xhr.getStatus()
+                        + " response:" + xhr.getResponseText());
+            }
+        });
     }
+
+    public static native void runBootStrap(JsonObject init)/*-{
+      $wnd.Vaadin.Flow.bootstrap(init);
+    }-*/;
 
     /**
      * Starts the application with a given id by reading the configuration
@@ -197,7 +230,7 @@ public class Bootstrapper implements EntryPoint {
 
     private static native boolean vaadinBootstrapLoaded()
     /*-{
-         return $wnd.Vaadin.Flow != null;
+         return $wnd.Vaadin.Flow.bootstrap != null;
      }-*/;
 
     private static native void deferStartApplication(String applicationId)

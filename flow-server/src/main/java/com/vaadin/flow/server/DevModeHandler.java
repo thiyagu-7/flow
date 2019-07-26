@@ -15,6 +15,10 @@
  */
 package com.vaadin.flow.server;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -38,10 +42,6 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +55,8 @@ import static com.vaadin.flow.server.Constants.SERVLET_PARAMETER_DEVMODE_WEBPACK
 import static com.vaadin.flow.server.frontend.FrontendUtils.WEBPACK_CONFIG;
 import static com.vaadin.flow.server.frontend.FrontendUtils.getNodeExecutable;
 import static com.vaadin.flow.server.frontend.FrontendUtils.validateNodeAndNpmVersion;
+import static com.vaadin.flow.shared.ApplicationConstants.REQUEST_TYPE_INIT;
+import static com.vaadin.flow.shared.ApplicationConstants.REQUEST_TYPE_PARAMETER;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -297,10 +299,11 @@ public final class DevModeHandler implements Serializable {
      * @return true if the request should be forwarded to webpack
      */
     public boolean isDevModeRequest(HttpServletRequest request) {
-//        String path = request.getPathInfo();
-//        return "/".equals(path) || !routes.contains(request.getPathInfo());
-        return request.getPathInfo() != null
-                && request.getPathInfo().matches(".+\\.js");
+//        return request.getPathInfo() != null
+//                && request.getPathInfo().matches(".+\\.js");
+        String path = request.getPathInfo();
+        return !REQUEST_TYPE_INIT.equals(request.getParameter(REQUEST_TYPE_PARAMETER))
+                && ("/".equals(path) || !routes.contains(request.getPathInfo()));
     }
 
     /**
@@ -320,14 +323,17 @@ public final class DevModeHandler implements Serializable {
      */
     public boolean serveDevModeRequest(HttpServletRequest request,
             HttpServletResponse response) throws IOException {
-        // Requests in devmode should come to /VAADIN/build/index....js where as
-        // webpack has the file in /build/index....js so we need to drop the
-        // /VAADIN
-        //        String requestFilename = request.getPathInfo().replace(VAADIN_MAPPING,
-        //                "");
+
         // Because `output.publicPath` is needed for production mode, webpack-dev-server
-        // has to accept the url with the same prefix.
+        // has to accept the url with the same prefix, we do not remove VAADIN_MAPPING
         String requestFilename = request.getPathInfo();
+        
+        // When request has no extension we suppose it's a route, we need to
+        // return the index.html so as client side routing work on browser reload.
+        // This is the same behavior than in vaadin-frontend-server
+        if (!requestFilename.matches("^.*\\.[a-zA-Z0-9]+$")) {
+            requestFilename = "/index.html";
+        }        
 
         HttpURLConnection connection = prepareConnection(requestFilename,
                 request.getMethod());

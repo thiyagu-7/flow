@@ -161,6 +161,8 @@ public class XhrConnection {
         XMLHttpRequest xhr = Xhr.post(getUri(), payloadJson,
                 JsonConstants.JSON_CONTENT_TYPE, responseHandler);
 
+
+
         Console.log("Sending xhr message to server: " + payloadJson);
 
         if (webkitMaybeIgnoringRequests && BrowserInfo.get().isWebkit()) {
@@ -177,6 +179,10 @@ public class XhrConnection {
             }.schedule(retryTimeout);
         }
     }
+
+    private static native void debugger() /*-{
+       debugger;
+    }-*/;
 
     /**
      * Retrieves the URI to use when sending RPCs to the server
