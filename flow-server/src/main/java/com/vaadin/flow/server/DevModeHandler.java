@@ -299,11 +299,9 @@ public final class DevModeHandler implements Serializable {
      * @return true if the request should be forwarded to webpack
      */
     public boolean isDevModeRequest(HttpServletRequest request) {
-//        return request.getPathInfo() != null
-//                && request.getPathInfo().matches(".+\\.js");
         String path = request.getPathInfo();
-        return !REQUEST_TYPE_INIT.equals(request.getParameter(REQUEST_TYPE_PARAMETER))
-                && ("/".equals(path) || !routes.contains(request.getPathInfo()));
+        return request.getParameter(REQUEST_TYPE_PARAMETER) == null
+                && ("/".equals(path) || !routes.contains(path));
     }
 
     /**
@@ -327,13 +325,15 @@ public final class DevModeHandler implements Serializable {
         // Because `output.publicPath` is needed for production mode, webpack-dev-server
         // has to accept the url with the same prefix, we do not remove VAADIN_MAPPING
         String requestFilename = request.getPathInfo();
+        getLogger().info("Requesting resource to webpack {}", requestFilename);
         
         // When request has no extension we suppose it's a route, we need to
         // return the index.html so as client side routing work on browser reload.
         // This is the same behavior than in vaadin-frontend-server
         if (!requestFilename.matches("^.*\\.[a-zA-Z0-9]+$")) {
-            requestFilename = "/index.html";
-        }        
+            requestFilename = "/" + Constants.VAADIN_MAPPING + "index.html";
+            getLogger().info("  Remapped request to {}", requestFilename);
+        }
 
         HttpURLConnection connection = prepareConnection(requestFilename,
                 request.getMethod());
@@ -349,17 +349,15 @@ public final class DevModeHandler implements Serializable {
         }
 
         // Send the request
-        getLogger().info("Requesting resource to webpack {}",
-                connection.getURL());
         int responseCode = connection.getResponseCode();
         if (responseCode == HTTP_NOT_FOUND) {
-            getLogger().info("Resource not served by webpack {}",
+            getLogger().info("  Resource not served by webpack {}",
                     requestFilename);
             // webpack cannot access the resource, return false so as flow can
             // handle it
             return false;
         }
-        getLogger().info("Served resource by webpack: {} {}", responseCode,
+        getLogger().info("  Served resource by webpack: {} {}", responseCode,
                 requestFilename);
 
         // Copies response headers
