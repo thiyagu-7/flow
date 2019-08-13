@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
 
     <modules>
+<!--
         <module>test-resources</module>
         <module>test-common</module>
         <module>test-pwa</module>
@@ -34,14 +35,11 @@
         <module>test-web-components-production</module>
         <module>test-web-components-theme-variant</module>
 
-        <!-- tests migrated to NPM -->
         <module>web-component-test-assets</module>
 
-        <!-- tests running in both modes -->
         <module>test-misc</module>
         <module>test-misc/pom-bower.xml</module>
 
-        <!--   Temporary disabled because the test is not stable. Will be investigated and enabled back.
         <module>test-mixed</module>
         <module>test-mixed/pom-npm-production.xml</module>
         <module>test-mixed/pom-bower-devmode.xml</module>
@@ -49,6 +47,7 @@
         <module>test-npm-only-features</module>
         <module>test-npm-web-components</module>
         <module>test-multi-war</module>
+-->
         <module>test-ccdm</module>
         <module>test-ccdm/pom-production.xml</module>
 

@@ -272,12 +272,18 @@ public class DevModeInitializer implements ServletContainerInitializer,
      * URLClassLoader because will fail in Java 9+
      */
     private static Set<File> getJarFilesFromClassloader() {
+        System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+        System.err.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
         Set<File> jarFiles = new HashSet<>();
         try {
             Enumeration<URL> en = DevModeInitializer.class.getClassLoader()
                     .getResources(RESOURCES_FRONTEND_DEFAULT);
             while (en.hasMoreElements()) {
                 URL url = en.nextElement();
+                System.err.println("---->>>> " + RESOURCES_FRONTEND_DEFAULT + " " +  url);
                 Matcher matcher = JAR_FILE_REGEX.matcher(url.getPath());
                 if (matcher.find()) {
                     jarFiles.add(new File(matcher.group(1)));
