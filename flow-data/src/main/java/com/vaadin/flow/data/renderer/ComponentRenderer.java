@@ -158,10 +158,16 @@ public class ComponentRenderer<COMPONENT extends Component, SOURCE>
                 keyMapper == null ? null : keyMapper::key);
         rendering.setTemplateElement(contentTemplate);
 
-        container.getNode()
-                .runWhenAttached(ui -> setupTemplateWhenAttached(
-                        ui, container, rendering,
-                        keyMapper));
+        /*
+         * setupTemplateWhenAttached does some setup that will be needed by
+         * generateData. To ensure the setup has completed before it is needed,
+         * we forego the general convention of using beforeClientResponse to
+         * guard the action against duplicate invocation. This is not a big
+         * problem in this case since setupTemplateWhenAttached only sets
+         * properties but doesn't execute any JS.
+         */
+        container.getNode().runWhenAttached(ui -> setupTemplateWhenAttached(ui,
+                container, rendering, keyMapper));
 
         return rendering;
     }
