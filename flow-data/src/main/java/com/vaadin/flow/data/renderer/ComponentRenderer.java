@@ -126,7 +126,7 @@ public class ComponentRenderer<COMPONENT extends Component, SOURCE>
      * Some components may support several rendered components at once, so
      * different component instances should be created for each different item
      * for those components.
-     * 
+     *
      * @param componentFunction
      *            a function that can generate new component instances
      * @param componentUpdateFunction
@@ -159,11 +159,9 @@ public class ComponentRenderer<COMPONENT extends Component, SOURCE>
         rendering.setTemplateElement(contentTemplate);
 
         container.getNode()
-                .runWhenAttached(ui -> ui.getInternals().getStateTree()
-                        .beforeClientResponse(container.getNode(),
-                                context -> setupTemplateWhenAttached(
-                                        context.getUI(), container, rendering,
-                                        keyMapper)));
+                .runWhenAttached(ui -> setupTemplateWhenAttached(
+                        ui, container, rendering,
+                        keyMapper));
 
         return rendering;
     }
